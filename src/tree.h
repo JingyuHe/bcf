@@ -191,6 +191,7 @@ public:
    void tonull();             //like a "clear", null tree has just one node
    bool isleft() const;
    bool isright() const;
+   void copy_only_root(tree_p o);
 
 private:
    //------------------------------

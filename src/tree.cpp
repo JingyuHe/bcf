@@ -652,4 +652,27 @@ void tree::tonull()
 }
 
 
+void tree::copy_only_root(tree_p o)
+//assume n has no children (so we don't have to kill them)
+//NOT LIKE cp() function
+//this function pointer new root to the OLD structure
+{
+    this->v = o->v;
+    this->c = o->c;
+    this->mu = o->mu;
 
+    if (o->l)
+    {
+        // keep the following structure, rather than create a new tree in memory
+        this->l = o->l;
+        this->r = o->r;
+        // also update pointers to parents
+        this->l->p = this;
+        this->r->p = this;
+    }
+    else
+    {
+        this->l = 0;
+        this->r = 0;
+    }
+}
