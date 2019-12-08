@@ -169,10 +169,22 @@ List bcfoverparRcppClean_ini(SEXP treedraws_con, SEXP treedraws_mod, NumericVect
   //trees
   //make trt_init a parameter later
   std::vector<tree> t_mod(ntree_mod);
-  for(size_t i=0;i<ntree_mod;i++) t_mod[i].setm(trt_init/(double)ntree_mod);
+  // for(size_t i=0;i<ntree_mod;i++) t_mod[i].setm(trt_init/(double)ntree_mod);
 
   std::vector<tree> t_con(ntree_con);
-  for(size_t i=0;i<ntree_con;i++) t_con[i].setm(ybar/(double)ntree_con);
+  // for(size_t i=0;i<ntree_con;i++) t_con[i].setm(ybar/(double)ntree_con);
+
+
+  // copy from loaded trees
+  for(size_t i = 0; i < ntree_mod; i++){
+    t_mod[i].copy_only_root(&(tmat_mod[i]));
+  }
+
+  for(size_t i = 0; i < ntree_con; i++){
+    t_con[i].copy_only_root(&(tmat_con[i]));
+  }
+
+
 
   //--------------------------------------------------
   //prior parameters
@@ -207,9 +219,15 @@ List bcfoverparRcppClean_ini(SEXP treedraws_con, SEXP treedraws_mod, NumericVect
 
   double sigma = shat;
 
+
+
+
+
+
   //--------------------------------------------------
   //dinfo for control function m(x)
-//  Rcout << "ybar " << ybar << endl;
+  // need to initialize allfit at predicted value of input trees
+  
   double* allfit_con = new double[n]; //sum of fit of all trees
   for(size_t i=0;i<n;i++) allfit_con[i] = ybar;
   double* r_con = new double[n]; //y-(allfit-ftemp) = y-allfit+ftemp
@@ -223,6 +241,17 @@ List bcfoverparRcppClean_ini(SEXP treedraws_con, SEXP treedraws_mod, NumericVect
   double* r_mod = new double[n]; //y-(allfit-ftemp) = y-allfit+ftemp
   dinfo di_mod;
   di_mod.n=n; di_mod.p=p_mod; di_mod.x = &x_mod[0]; di_mod.y=r_mod; //the y for each draw will be the residual
+
+
+
+
+
+
+
+
+
+
+
 
   //--------------------------------------------------
   //dinfo and design for trt effect function out of sample
