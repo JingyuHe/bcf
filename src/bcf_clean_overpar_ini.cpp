@@ -135,7 +135,7 @@ List bcfoverparRcppClean_ini(SEXP treedraws_con, SEXP treedraws_mod, NumericVect
   //  Rcout <<"\nlambda,nu,kfac: " << lambda << ", " << nu << ", " << kfac << endl;
 
 
-
+cout << "before loading trees " << endl;
   // load trees
   Rcpp::CharacterVector itrees_con(Rcpp::wrap(treedraws_con));
   Rcpp::CharacterVector itrees_mod(Rcpp::wrap(treedraws_mod));
@@ -150,6 +150,8 @@ List bcfoverparRcppClean_ini(SEXP treedraws_con, SEXP treedraws_mod, NumericVect
     ttss_con >> tmat_con[j];
   }
 
+cout << "load con trees " << endl;
+
   std::string itv_mod(itrees_mod[0]);
   std::stringstream ttss_mod(itv_mod);
   size_t mm_mod, pp_mod;
@@ -160,7 +162,7 @@ List bcfoverparRcppClean_ini(SEXP treedraws_con, SEXP treedraws_mod, NumericVect
     ttss_mod >> tmat_mod[j];
   }
 
-
+cout << "load all trees " << endl;
 
   /*****************************************************************************
   /* Setup the model
@@ -173,7 +175,8 @@ List bcfoverparRcppClean_ini(SEXP treedraws_con, SEXP treedraws_mod, NumericVect
 
   std::vector<tree> t_con(ntree_con);
   // for(size_t i=0;i<ntree_con;i++) t_con[i].setm(ybar/(double)ntree_con);
-
+cout << ntree_mod << " " << t_mod.size() << endl;
+cout << ntree_con << " " << t_con.size() << endl; 
 
   // copy from loaded trees
   for(size_t i = 0; i < ntree_mod; i++){
@@ -183,7 +186,7 @@ List bcfoverparRcppClean_ini(SEXP treedraws_con, SEXP treedraws_mod, NumericVect
   for(size_t i = 0; i < ntree_con; i++){
     t_con[i].copy_only_root(&(tmat_con[i]));
   }
-
+cout << "copy to trees " << endl;
 
 
   //--------------------------------------------------
@@ -378,6 +381,7 @@ List bcfoverparRcppClean_ini(SEXP treedraws_con, SEXP treedraws_mod, NumericVect
         allfit_con[k] = allfit_con[k]-mscale*ftemp[k];
         r_con[k] = (y[k]-allfit[k])/mscale;
         if(r_con[k] != r_con[k]) {
+          Rcout << "error" << endl;
           Rcout << (y[k]-allfit[k]) << endl;
           Rcout << mscale << endl;
           Rcout << r_con[k] << endl;
