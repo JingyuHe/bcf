@@ -164,7 +164,7 @@
 #' plot(tau, tauhat); abline(0,1)
 #'
 #'}
-bcf_ini <- function(treedraws_con, treedraws_mod, y, z, x_control, x_moderate=x_control, pihat,
+bcf_ini <- function(treedraws_con, treedraws_mod, muscale_ini, bscale0_ini, bscale1_ini, sigma_ini, y, z, x_control, x_moderate=x_control, pihat,
                 nburn, nsim, nthin = 1, update_interval = 100,
                 ntree_control = 200,
                 sd_control = 2*sd(y),
@@ -249,7 +249,7 @@ bcf_ini <- function(treedraws_con, treedraws_mod, y, z, x_control, x_moderate=x_
 
   perm = order(z, decreasing=TRUE)
 
-  fitbcf = bcfoverparRcppClean_ini(treedraws_con, treedraws_mod, yscale[perm], z[perm], t(x_c[perm,]), t(x_m[perm,,drop=FALSE]), t(x_m[1,,drop=FALSE]),
+  fitbcf = bcfoverparRcppClean_ini(treedraws_con, treedraws_mod, muscale_ini, bscale0_ini, bscale1_ini, sigma_ini, yscale[perm], z[perm], t(x_c[perm,]), t(x_m[perm,,drop=FALSE]), t(x_m[1,,drop=FALSE]),
                         cutpoint_list_c, cutpoint_list_m,
                         random_des = matrix(1),
                         random_var = matrix(1),
