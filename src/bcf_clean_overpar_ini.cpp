@@ -418,12 +418,15 @@ cout << "copy to trees " << endl;
     //draw trees for m(x)
     for(size_t j=0;j<ntree_con;j++) {
       fit(t_con[j],xi_con,di_con,ftemp);
+      cout << "fine 1" << endl;
       for(size_t k=0;k<n;k++) {
+        cout << "fine 2" << endl;
         if(ftemp[k] != ftemp[k]) {
           Rcout << "control tree " << j <<" obs "<< k<<" "<< endl;
           Rcout << t_con[j] << endl;
           stop("nan in ftemp");
         }
+        cout << "fine 3" << endl;
         allfit[k] = allfit[k]-mscale*ftemp[k];
         allfit_con[k] = allfit_con[k]-mscale*ftemp[k];
         r_con[k] = (y[k]-allfit[k])/mscale;
@@ -434,10 +437,13 @@ cout << "copy to trees " << endl;
           Rcout << r_con[k] << endl;
           stop("NaN in resid");
         }
+        cout << "fine 4" << endl;
       }
 
       bd(t_con[j],xi_con,di_con,pi_con,gen);
+      cout << "fine 5" << endl;
       drmu(t_con[j],xi_con,di_con,pi_con,gen);
+      cout << "fine 6" << endl;
 
       fit(t_con[j],xi_con,di_con,ftemp);
       for(size_t k=0;k<n;k++) {
@@ -445,6 +451,7 @@ cout << "copy to trees " << endl;
         allfit_con[k] += mscale*ftemp[k];
       }
     }
+
 
     //draw trees for b(x)
     for(size_t k=0;k<ntrt;k++) {
