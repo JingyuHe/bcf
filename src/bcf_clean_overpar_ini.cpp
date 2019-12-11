@@ -21,7 +21,8 @@ using namespace Rcpp;
 //data should come in sorted with all trt first, then control cases
 
 // [[Rcpp::export]]
-List bcfoverparRcppClean_ini(SEXP treedraws_con, SEXP treedraws_mod, NumericVector y_, NumericVector z_,
+List bcfoverparRcppClean_ini(SEXP treedraws_con, SEXP treedraws_mod, double muscale_ini, double bscale0_ini, double bscale1_ini, double sigma_ini,
+                  NumericVector y_, NumericVector z_,
                   NumericVector x_con_, NumericVector x_mod_, NumericVector x_mod_est_,
                   List x_con_info_list, List x_mod_info_list,
                   arma::mat random_des, //needs to come in with n rows no matter what(?)
@@ -200,6 +201,9 @@ cout << "copy to trees " << endl;
   double mscale = 1.0;
   double delta_con = 1.0;
   double delta_mod = 1.0;
+  double* ftemp  = new double[n]; //fit of current tree
+  double* allfit = new double[n]; //yhat
+
 
   pinfo pi_mod;
   pi_mod.pbd = 1.0; //prob of birth/death move
@@ -224,18 +228,38 @@ cout << "copy to trees " << endl;
 
 
 
+  // mscale is corresponding to a in XBCF
+  // bscale0, bscale1 is corresponding to b in XBCF
+  mscale = muscale_ini;
+  bscale0 = bscale0_ini;
+  bscale1 = bscale1_ini;
+  sigma = sigma_ini;
 
-
-
+  // initialize residual vectors
+  // allfit_con = muscale * trees_con
+  // allfit_mod = bscale(Z) * trees_mod
+  // allfit = allfit_con + allfit_mod
+  // r_con = (y - allfit) / muscale
+  // r_mod = (y - allfit) / bscale(Z)
   //--------------------------------------------------
   //dinfo for control function m(x)
   // need to initialize allfit at predicted value of input trees
   
   double* allfit_con = new double[n]; //sum of fit of all trees
-  for(size_t i=0;i<n;i++) allfit_con[i] = ybar;
   double* r_con = new double[n]; //y-(allfit-ftemp) = y-allfit+ftemp
   dinfo di_con;
-  di_con.n=n; di_con.p=p_con; di_con.x = &x_con[0]; di_con.y=r_con; //the y for each draw will be the residual
+  di_con.n=n; di_con.p=p_con; di_con.x = &x_con[0];  
+
+  for(size_t j=0;j<ntree_con;j++) {
+    fit(t_con[j],xi_con,di_con,ftemp);
+    for(size_t k=0;k<n;k++) {
+      allfit[k] += mscale*ftemp[k];
+      allfit_con[k] += mscale*ftemp[k];
+      r_con[k] = (y[k]-allfit[k])/mscale;
+    }
+  }
+
+  di_con.y=r_con; //the y for each draw will be the residual
 
   //--------------------------------------------------
   //dinfo for trt effect function b(x)
@@ -243,18 +267,43 @@ cout << "copy to trees " << endl;
   for(size_t i=0;i<n;i++) allfit_mod[i] = (z_[i]*bscale1 + (1-z_[i])*bscale0)*trt_init;
   double* r_mod = new double[n]; //y-(allfit-ftemp) = y-allfit+ftemp
   dinfo di_mod;
-  di_mod.n=n; di_mod.p=p_mod; di_mod.x = &x_mod[0]; di_mod.y=r_mod; //the y for each draw will be the residual
+  di_mod.n=n; di_mod.p=p_mod; di_mod.x = &x_mod[0]; 
+  
+  for(size_t j=0;j<ntree_mod;j++) 
+  {
+    fit(t_mod[j],xi_mod,di_mod,ftemp);
+    for(size_t k=0;k<ntrt;k++) {
+      allfit[k] += bscale1*ftemp[k];
+      allfit_mod[k] += bscale1*ftemp[k];
+      r_mod[k] = (y[k]-allfit[k])/bscale1;
+    }
+    for(size_t k=ntrt;k<n;k++) {
+      allfit[k] += bscale0*ftemp[k];
+      allfit_mod[k] += bscale0*ftemp[k];
+      r_mod[k] = (y[k]-allfit[k])/bscale1;
+    }
+  }
+
+  di_mod.y=r_mod; //the y for each draw will be the residual
 
 
+  // //--------------------------------------------------
+  // //dinfo for control function m(x)
+  // // need to initialize allfit at predicted value of input trees
+  
+  // double* allfit_con = new double[n]; //sum of fit of all trees
+  // for(size_t i=0;i<n;i++) allfit_con[i] = ybar;
+  // double* r_con = new double[n]; //y-(allfit-ftemp) = y-allfit+ftemp
+  // dinfo di_con;
+  // di_con.n=n; di_con.p=p_con; di_con.x = &x_con[0]; di_con.y=r_con; //the y for each draw will be the residual
 
-
-
-
-
-
-
-
-
+  // //--------------------------------------------------
+  // //dinfo for trt effect function b(x)
+  // double* allfit_mod = new double[n]; //sum of fit of all trees
+  // for(size_t i=0;i<n;i++) allfit_mod[i] = (z_[i]*bscale1 + (1-z_[i])*bscale0)*trt_init;
+  // double* r_mod = new double[n]; //y-(allfit-ftemp) = y-allfit+ftemp
+  // dinfo di_mod;
+  // di_mod.n=n; di_mod.p=p_mod; di_mod.x = &x_mod[0]; di_mod.y=r_mod; //the y for each draw will be the residual
 
   //--------------------------------------------------
   //dinfo and design for trt effect function out of sample
@@ -315,12 +364,10 @@ cout << "copy to trees " << endl;
 
   //--------------------------------------------------
   //storage for the fits
-  double* allfit = new double[n]; //yhat
   for(size_t i=0;i<n;i++) {
     allfit[i] = allfit_mod[i] + allfit_con[i];
     if(randeff) allfit[i] += allfit_random[i];
   }
-  double* ftemp  = new double[n]; //fit of current tree
 
   double* precs = new double[n]; // temp storage for conditional ''precisions'' in heteroskedastic updates
 
