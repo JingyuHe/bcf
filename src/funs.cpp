@@ -899,7 +899,7 @@ void drmu(tree& t, xinfo& xi, dinfo& di, pinfo& pi, RNG& gen)
 		ybar = sv[i].sy/sv[i].n;
 		bnv[i]->setm(b*ybar/(a+b) + gen.normal()/sqrt(a+b));
     if(bnv[i]->getm() != bnv[i]->getm()) {
-      for(int i=0; i<di.n; ++i) Rcout << *(di.x + i*di.p) <<" "; //*(x + p*i+j)
+    //   for(int i=0; i<di.n; ++i) Rcout << *(di.x + i*di.p) <<" "; //*(x + p*i+j)
       Rcout << endl<<" a "<< a<<" b "<<b<<" svi[n] "<<sv[i].n<<" i "<<i;
       Rcout << endl << t;
       Rcpp::stop("drmu failed");
