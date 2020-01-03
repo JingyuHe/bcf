@@ -287,6 +287,17 @@ cout << "copy to trees " << endl;
   di_mod.y=r_mod; //the y for each draw will be the residual
 
 
+
+
+cout << "print out all trees " << endl;
+cout << "moderate trees " << endl;
+for(size_t tt = 0; tt < ntree_mod; tt ++ ){
+  Rcout << t_mod[tt] << endl;
+} 
+cout << "control trees " << endl;
+for(size_t tt = 0; tt < ntree_con; tt ++ ){
+  Rcout << t_con[tt] << endl;
+}
   // //--------------------------------------------------
   // //dinfo for control function m(x)
   // // need to initialize allfit at predicted value of input trees
@@ -441,7 +452,9 @@ cout << "copy to trees " << endl;
         Rcout << allfit[k] << " " << allfit_con[k] << " " << r_con[k] << " " << y[k] << endl;
       }
 
-      bd(t_con[j],xi_con,di_con,pi_con,gen);
+      // bd(t_con[j],xi_con,di_con,pi_con,gen);
+      
+    
 cout << "before drmu " << endl;
       // something wrong here
       drmu(t_con[j],xi_con,di_con,pi_con,gen);
