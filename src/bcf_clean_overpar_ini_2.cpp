@@ -21,7 +21,8 @@ using namespace Rcpp;
 //data should come in sorted with all trt first, then control cases
 
 // [[Rcpp::export]]
-List bcfoverparRcppClean_ini_2(SEXP treedraws_con, SEXP treedraws_mod, NumericVector y_, NumericVector z_,
+List bcfoverparRcppClean_ini_2(SEXP treedraws_con, SEXP treedraws_mod, double muscale_ini, double bscale0_ini, double bscale1_ini, double sigma_ini,
+NumericVector y_, NumericVector z_,
                   NumericVector x_con_, NumericVector x_mod_, NumericVector x_mod_est_,
                   List x_con_info_list, List x_mod_info_list,
                   arma::mat random_des, //needs to come in with n rows no matter what(?)

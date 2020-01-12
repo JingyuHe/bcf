@@ -145,10 +145,10 @@ cout << "before loading trees " << endl;
   std::stringstream ttss_con(itv_con);
   size_t mm_con, pp_con;
   ttss_con >> mm_con >> pp_con;
-  std::vector<tree> tmat_con(mm_con);
+  std::vector<tree> t_con(mm_con);
   for (size_t j = 0; j < mm_con; j++)
   {
-    ttss_con >> tmat_con[j];
+    ttss_con >> t_con[j];
   }
 
 cout << "load con trees " << endl;
@@ -157,10 +157,10 @@ cout << "load con trees " << endl;
   std::stringstream ttss_mod(itv_mod);
   size_t mm_mod, pp_mod;
   ttss_mod >> mm_mod >> pp_mod;
-  std::vector<tree> tmat_mod(mm_mod);
+  std::vector<tree> t_mod(mm_mod);
   for (size_t j = 0; j < mm_mod; j++)
   {
-    ttss_mod >> tmat_mod[j];
+    ttss_mod >> t_mod[j];
   }
 
 cout << "load all trees " << endl;
@@ -170,25 +170,6 @@ cout << "load all trees " << endl;
   *****************************************************************************/
   //--------------------------------------------------
   //trees
-  //make trt_init a parameter later
-  std::vector<tree> t_mod(ntree_mod);
-  // for(size_t i=0;i<ntree_mod;i++) t_mod[i].setm(trt_init/(double)ntree_mod);
-
-  std::vector<tree> t_con(ntree_con);
-  // for(size_t i=0;i<ntree_con;i++) t_con[i].setm(ybar/(double)ntree_con);
-cout << ntree_mod << " " << t_mod.size() << endl;
-cout << ntree_con << " " << t_con.size() << endl; 
-
-  // copy from loaded trees
-  for(size_t i = 0; i < ntree_mod; i++){
-    t_mod[i].copy_only_root(&(tmat_mod[i]));
-  }
-
-  for(size_t i = 0; i < ntree_con; i++){
-    t_con[i].copy_only_root(&(tmat_con[i]));
-  }
-cout << "copy to trees " << endl;
-
 
   //--------------------------------------------------
   //prior parameters
