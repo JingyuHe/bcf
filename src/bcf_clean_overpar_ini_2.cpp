@@ -145,10 +145,10 @@ cout << "before loading trees " << endl;
   std::stringstream ttss_con(itv_con);
   size_t mm_con, pp_con;
   ttss_con >> mm_con >> pp_con;
-  std::vector<tree> tmat_con(mm_con);
+  std::vector<tree> t_con(mm_con);
   for (size_t j = 0; j < mm_con; j++)
   {
-    ttss_con >> tmat_con[j];
+    ttss_con >> t_con[j];
   }
 
 cout << "load con trees " << endl;
@@ -157,10 +157,10 @@ cout << "load con trees " << endl;
   std::stringstream ttss_mod(itv_mod);
   size_t mm_mod, pp_mod;
   ttss_mod >> mm_mod >> pp_mod;
-  std::vector<tree> tmat_mod(mm_mod);
+  std::vector<tree> t_mod(mm_mod);
   for (size_t j = 0; j < mm_mod; j++)
   {
-    ttss_mod >> tmat_mod[j];
+    ttss_mod >> t_mod[j];
   }
 
 cout << "load all trees " << endl;
@@ -172,11 +172,11 @@ cout << "load all trees " << endl;
   //--------------------------------------------------
   //trees
   //make trt_init a parameter later
-  std::vector<tree> t_mod(ntree_mod);
-  for(size_t i=0;i<ntree_mod;i++) t_mod[i].setm(trt_init/(double)ntree_mod);
+  // std::vector<tree> t_mod(ntree_mod);
+  // for(size_t i=0;i<ntree_mod;i++) t_mod[i].setm(trt_init/(double)ntree_mod);
 
-  std::vector<tree> t_con(ntree_con);
-  for(size_t i=0;i<ntree_con;i++) t_con[i].setm(ybar/(double)ntree_con);
+  // std::vector<tree> t_con(ntree_con);
+  // for(size_t i=0;i<ntree_con;i++) t_con[i].setm(ybar/(double)ntree_con);
 
   //--------------------------------------------------
   //prior parameters
@@ -213,20 +213,54 @@ cout << "load all trees " << endl;
 
   //--------------------------------------------------
   //dinfo for control function m(x)
-//  Rcout << "ybar " << ybar << endl;
-  double* allfit_con = new double[n]; //sum of fit of all trees
-  for(size_t i=0;i<n;i++) allfit_con[i] = ybar;
-  double* r_con = new double[n]; //y-(allfit-ftemp) = y-allfit+ftemp
-  dinfo di_con;
-  di_con.n=n; di_con.p=p_con; di_con.x = &x_con[0]; di_con.y=r_con; //the y for each draw will be the residual
 
-  //--------------------------------------------------
-  //dinfo for trt effect function b(x)
+  // allocate storage
+  double* ftemp  = new double[n]; //fit of current tree
+  double* precs = new double[n]; // temp storage for conditional ''precisions'' in heteroskedastic updates
+  double* allfit_con = new double[n]; //sum of fit of all trees
   double* allfit_mod = new double[n]; //sum of fit of all trees
-  for(size_t i=0;i<n;i++) allfit_mod[i] = (z_[i]*bscale1 + (1-z_[i])*bscale0)*trt_init;
+  double* allfit = new double[n]; //yhat
+  double* r_con = new double[n]; //y-(allfit-ftemp) = y-allfit+ftemp
   double* r_mod = new double[n]; //y-(allfit-ftemp) = y-allfit+ftemp
+  dinfo di_con;
+  di_con.n=n; di_con.p=p_con; di_con.x = &x_con[0];  //the y for each draw will be the residual
   dinfo di_mod;
-  di_mod.n=n; di_mod.p=p_mod; di_mod.x = &x_mod[0]; di_mod.y=r_mod; //the y for each draw will be the residual
+  di_mod.n=n; di_mod.p=p_mod; di_mod.x = &x_mod[0];  //the y for each draw will be the residual
+
+
+  // initialize allfit, residuals from trees read in 
+  for(size_t kk = 0; kk < n; kk ++ ){
+    allfit[kk] = 0;
+    allfit_con[kk] = 0;
+    allfit_mod[kk] = 0;
+  }
+
+  for(size_t j=0;j<ntree_con;j++) {
+    fit(t_con[j],xi_con,di_con,ftemp);
+    for(size_t k=0;k<n;k++) {
+      allfit[k] += mscale*ftemp[k];
+      allfit_con[k] += mscale*ftemp[k];
+      r_con[k] = (y[k]-allfit[k])/mscale;
+    }
+  }
+
+  for(size_t j=0;j<ntree_mod;j++) 
+  {
+    fit(t_mod[j],xi_mod,di_mod,ftemp);
+    for(size_t k=0;k<ntrt;k++) {
+      allfit[k] += bscale1*ftemp[k];
+      allfit_mod[k] += bscale1*ftemp[k];
+      r_mod[k] = (y[k]-allfit[k])/bscale1;
+    }
+    for(size_t k=ntrt;k<n;k++) {
+      allfit[k] += bscale0*ftemp[k];
+      allfit_mod[k] += bscale0*ftemp[k];
+      r_mod[k] = (y[k]-allfit[k])/bscale1;
+    }
+  }
+
+  di_con.y=r_con;
+  di_mod.y=r_mod;
 
   //--------------------------------------------------
   //dinfo and design for trt effect function out of sample
@@ -287,14 +321,10 @@ cout << "load all trees " << endl;
 
   //--------------------------------------------------
   //storage for the fits
-  double* allfit = new double[n]; //yhat
   for(size_t i=0;i<n;i++) {
     allfit[i] = allfit_mod[i] + allfit_con[i];
     if(randeff) allfit[i] += allfit_random[i];
   }
-  double* ftemp  = new double[n]; //fit of current tree
-
-  double* precs = new double[n]; // temp storage for conditional ''precisions'' in heteroskedastic updates
 
   NumericVector sigma_post(nd);
   NumericVector msd_post(nd);
@@ -360,8 +390,26 @@ cout << "load all trees " << endl;
         }
       }
 
+      for(size_t kk = 0; kk < n; kk ++){
+        cout << allfit[kk] - allfit_con[kk] - allfit_mod[kk] << " ";
+      }
+      cout << endl;
+
+      cout << "round " << i << " tree " << j << endl;
+      cout << "ok 1" << endl;
       bd(t_con[j],xi_con,di_con,pi_con,gen);
+
+
+      cout << " ----------------------------------- " << endl;
+            for(size_t kk = 0; kk < n; kk ++){
+        cout << allfit[kk] - allfit_con[kk] - allfit_mod[kk] << " ";
+      }
+      cout << endl;
+
+
+      cout << "ok 2" << endl;
       drmu(t_con[j],xi_con,di_con,pi_con,gen);
+      cout << "ok 3" << endl;
 
       fit(t_con[j],xi_con,di_con,ftemp);
       for(size_t k=0;k<n;k++) {
