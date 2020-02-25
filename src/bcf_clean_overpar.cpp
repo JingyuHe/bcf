@@ -275,6 +275,11 @@ List bcfoverparRcppClean(NumericVector y_, NumericVector z_,
   arma::mat gamma_post(nd,gamma.n_elem);
   arma::mat random_var_post(nd,random_var.n_elem);
 
+
+  NumericVector b0_vec(nd);
+  NumericVector b1_vec(nd);
+  NumericVector m_vec(nd);
+
   //  NumericMatrix spred2(nd,dip.n);
 
   /*
@@ -599,6 +604,10 @@ List bcfoverparRcppClean(NumericVector y_, NumericVector z_,
       msd_post(save_ctr) = fabs(mscale)*con_sd;
       bsd_post(save_ctr) = fabs(bscale1-bscale0)*mod_sd;
 
+      m_vec(save_ctr) = mscale;
+      b0_vec(save_ctr) = bscale0;
+      b1_vec(save_ctr) = bscale1;
+
       gamma_post.row(save_ctr) = (diagmat(random_var_ix*eta)*gamma).t();
       random_var_post.row(save_ctr) = (sqrt( eta % eta % random_var)).t();
 
@@ -623,6 +632,42 @@ List bcfoverparRcppClean(NumericVector y_, NumericVector z_,
   int time2 = time(&tp);
   Rcout << "time for loop: " << time2 - time1 << endl;
 
+
+
+
+  std::stringstream treess_mod;
+  std::stringstream treess_con;
+
+  Rcpp::StringVector output_tree_mod(1);
+  Rcpp::StringVector output_tree_con(1);
+  
+  // for(size_t i = 0; i < num_sweeps; i ++ ){
+  treess_mod.precision(10);
+  treess_con.precision(10);
+
+  treess_mod.str(std::string());
+  treess_mod << ntree_mod << " " << p_mod << endl;
+
+  treess_con.str(std::string());
+  treess_con << ntree_con << " " << p_con << endl;
+
+  for (size_t t = 0; t < ntree_mod; t++)
+  {
+      // cout << "printing tree " << t << endl;
+      // cout << t_mod[t] << endl;
+      treess_mod << t_mod[t];
+  }
+
+  for (size_t t = 0; t < ntree_con; t++)
+  {
+      treess_con << t_con[t];
+  }
+
+  output_tree_mod(0) = treess_mod.str();
+  output_tree_con(0) = treess_con.str();
+
+
+    
   t_mod.clear(); t_con.clear();
   delete[] allfit;
   delete[] allfit_mod;
@@ -635,6 +680,11 @@ List bcfoverparRcppClean(NumericVector y_, NumericVector z_,
 
   return(List::create(_["yhat_post"] = yhat_post, _["b_post"] = b_post, _["b_est_post"] = b_est_post,
                       _["sigma"] = sigma_post, _["msd"] = msd_post, _["bsd"] = bsd_post,
-                      _["gamma"] = gamma_post, _["random_var_post"] = random_var_post
+                      _["gamma"] = gamma_post, _["random_var_post"] = random_var_post, 
+                      _["tree_mod"] = output_tree_mod, _["tree_con"] = output_tree_con,
+                      _["pi_con_tau"] = pi_con.tau, _["pi_con_sigma"] = pi_con.sigma,
+                      _["pi_mod_tau"] = pi_mod.tau, _["pi_mod_sigma"] = pi_mod.sigma,
+                      _["mscale"] = mscale, _["bscale0"] = bscale0, _["bscale1"] = bscale1,
+                      _["mscale_vec"] = m_vec, _["bscale0_vec"] = b0_vec, _["bscale1_vec"] = b1_vec                      
   ));
 }

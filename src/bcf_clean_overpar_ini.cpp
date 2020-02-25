@@ -534,18 +534,9 @@ List bcfoverparRcppClean_ini(bool ini_bcf, SEXP treedraws_con, SEXP treedraws_mo
         }
       }
 
-      // check values of all partial fits 
-      for(size_t k = 0; k < n; k++){
-        Rcout << allfit[k] << " " << allfit_con[k] << " " << r_con[k] << " " << y[k] << endl;
-      }
-
-      // bd(t_con[j],xi_con,di_con,pi_con,gen);
-      
-    
-cout << "before drmu " << endl;
-      // something wrong here
+      bd(t_con[j],xi_con,di_con,pi_con,gen);
       drmu(t_con[j],xi_con,di_con,pi_con,gen);
-cout << "after drmu " << endl;
+
       fit(t_con[j],xi_con,di_con,ftemp);
       for(size_t k=0;k<n;k++) {
         allfit[k] += mscale*ftemp[k];

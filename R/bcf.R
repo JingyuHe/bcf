@@ -224,10 +224,12 @@ bcf <- function(y, z, x_control, x_moderate=x_control, pihat,
   x_c = matrix(x_control, ncol=ncol(x_control))
   x_m = matrix(x_moderate, ncol=ncol(x_moderate))
   if(include_pi=="both" | include_pi=="control") {
-    x_c = cbind(x_control, pihat)
+    # x_c = cbind(x_control, pihat)
+    x_c = cbind(pihat, x_control)
   }
   if(include_pi=="both" | include_pi=="moderate") {
-    x_m = cbind(x_moderate, pihat)
+    # x_m = cbind(x_moderate, pihat)
+    x_m = cbind(pihat, x_moderate)
   }
   cutpoint_list_c = lapply(1:ncol(x_c), function(i) .cp_quantile(x_c[,i]))
   cutpoint_list_m = lapply(1:ncol(x_m), function(i) .cp_quantile(x_m[,i]))
@@ -285,7 +287,21 @@ bcf <- function(y, z, x_control, x_moderate=x_control, pihat,
        tau = tau_post,
        mu_scale = fitbcf$msd*sdy,
        tau_scale = fitbcf$bsd*sdy,
-       perm = perm
+       perm = perm,
+       tree_mod = fitbcf$tree_mod,
+       tree_con = fitbcf$tree_con,
+       pi_con_tau = fitbcf$pi_con_tau,
+       pi_con_sigma = fitbcf$pi_con_sigma,
+       pi_mod_tau = fitbcf$pi_mod_tau,
+       pi_mod_sigma = fitbcf$pi_mod_sigma,
+       mscale = fitbcf$mscale,
+       bscale0 = fitbcf$bscale0,
+       bscale1 = fitbcf$bscale1,
+       mscale_vec = fitbcf$mscale_vec,
+       bscale0_vec = fitbcf$bscale0_vec,
+       bscale1_vec = fitbcf$bscale1_vec,
+       xi_con = cutpoint_list_c, 
+       xi_mod = cutpoint_list_m
   )
 
 }
