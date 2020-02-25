@@ -164,7 +164,7 @@
 #' plot(tau, tauhat); abline(0,1)
 #'
 #'}
-bcf_ini <- function(treedraws_con, treedraws_mod, muscale_ini, bscale0_ini, bscale1_ini, sigma_ini, y, z, x_control, x_moderate=x_control, pihat,
+bcf_ini <- function(treedraws_con, treedraws_mod, muscale_ini, bscale0_ini, bscale1_ini, sigma_ini, pi_con_tau, pi_con_sigma, pi_mod_tau, pi_mod_sigma, mod_tree_scaling, y, z, x_control, x_moderate=x_control, pihat,
                 nburn, nsim, nthin = 1, update_interval = 100,
                 ntree_control = 200,
                 sd_control = 2*sd(y),
@@ -175,7 +175,7 @@ bcf_ini <- function(treedraws_con, treedraws_mod, muscale_ini, bscale0_ini, bsca
                 base_moderate = 0.25,
                 power_moderate = 3,
                 nu = 3, lambda = NULL, sigq = .9, sighat = NULL,
-                include_pi = "control", use_muscale=TRUE, use_tauscale=TRUE
+                include_pi = "control", use_muscale=TRUE, use_tauscale=TRUE, ini_bcf = FALSE, update_mu_loading_tree = FALSE
 ) {
 
   pihat = as.matrix(pihat)
@@ -249,7 +249,8 @@ bcf_ini <- function(treedraws_con, treedraws_mod, muscale_ini, bscale0_ini, bsca
 
   perm = order(z, decreasing=TRUE)
 
-  fitbcf = bcfoverparRcppClean_ini(treedraws_con, treedraws_mod, muscale_ini, bscale0_ini, bscale1_ini, sigma_ini, yscale[perm], z[perm], t(x_c[perm,]), t(x_m[perm,,drop=FALSE]), t(x_m[1,,drop=FALSE]),
+  fitbcf = bcfoverparRcppClean_ini(ini_bcf, treedraws_con, treedraws_mod, muscale_ini, bscale0_ini, bscale1_ini, sigma_ini, pi_con_tau, pi_con_sigma, pi_mod_tau, pi_mod_sigma, mod_tree_scaling,
+  yscale[perm], z[perm], t(x_c[perm,]), t(x_m[perm,,drop=FALSE]), t(x_m[1,,drop=FALSE]),
                         cutpoint_list_c, cutpoint_list_m,
                         random_des = matrix(1),
                         random_var = matrix(1),
@@ -261,7 +262,7 @@ bcf_ini <- function(treedraws_con, treedraws_mod, muscale_ini, bscale0_ini, bsca
                         mod_sd = ifelse(abs(sdy - sd_moderate)<1e-6, 1, sd_moderate/sdy)/ifelse(use_tauscale,0.674,1), # if HN make sd_moderate the prior median
                         base_moderate, power_moderate, base_control, power_control,
                         "tmp", status_interval = update_interval,
-                        use_mscale = use_muscale, use_bscale = use_tauscale, b_half_normal = TRUE)
+                        use_mscale = use_muscale, use_bscale = use_tauscale, b_half_normal = TRUE, update_mu_loading_tree = update_interval)
 
   #B = drop(fit$post_B)
   #B0 = fit$b0
