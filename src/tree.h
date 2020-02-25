@@ -36,6 +36,7 @@ struct node_info {
    std::size_t id; //node id
    std::size_t v;  //variable
    std::size_t c;  //cut point
+   double c_value;
    double m;       //mu
 };
 
